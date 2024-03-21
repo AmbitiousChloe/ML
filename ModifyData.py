@@ -3,16 +3,7 @@ import pandas as pd
 import numpy as np
 import challenge_basic
 
-# file_name = "clean_dataset.csv"
 file_name = "pre_data.csv"
-# From lab06
-def make_onehot(indicies):
-    I = np.eye(4)
-    return I[indicies]
-
-# https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
-def softmax(z):
-    return np.exp((z - np.max(z))) / np.sum(np.exp(z), axis=0)
 
 def splitDataset(df, val_size, test_size):
     train_size = len(df) - (val_size + test_size)
@@ -55,11 +46,16 @@ if __name__ == "__main__":
     Q6_max_onehot = pd.get_dummies(df['Q6_max'], prefix='Q6_max', dtype=int)
     df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
     Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
+    cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
+    df['Label'] = pd.Categorical(df['Label'], categories=cities)
+    Label_onehot = pd.get_dummies(df['Label'], prefix='Label', dtype=int)
     
-    df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot], axis=1)
+    df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot, Label_onehot], axis=1)
 
-    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5_list', 'id', 'Q5', 'Q6', 'p', 'f', 's', 'o', 'Q10', 'Q6_max', 'Q6_min'] # Edit Accordingly
+    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5_list', 'id', 'Q5', 'Q6', 'p', 'f', 's', 'o', 'Q10', 'Q6_max', 'Q6_min', 'Label'] # Edit Accordingly
     for col in delete_columns:
         del df[col]
+
+    df = df.sample(frac=1, random_state=100)
     
     df.to_csv("ModifiedData.csv", index=False)
