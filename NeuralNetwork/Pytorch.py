@@ -17,14 +17,22 @@ X = data.drop('Label', axis=1).values
 y = data['Label'].values
 
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+test = data.sample(frac=1, random_state=311)
+x_test_set = test.drop("Label", axis=1).values
+y_test_set = test["Label"].values
+X_test = x_test_set[:150]
+y_test = y_test_set[:150]
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 X_val_tensor = torch.tensor(X_val, dtype=torch.float)
 y_val_tensor = torch.tensor(y_val, dtype=torch.long)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float)
+y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
+test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
 class TwoLayerNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -42,6 +50,7 @@ class TwoLayerNN(nn.Module):
 batch_size = 64
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
+test_loader = DataLoader(dataset=test_dataset, batch_size=150, shuffle=False)
 
 input_size = X_train.shape[1]
 hidden_size = 20
@@ -55,9 +64,10 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 # Initialize lists to track the accuracy and loss over time for both training and validation sets
 train_losses, val_losses = [], []
 train_accuracies, val_accuracies = [], []
+test_accuracies = []
 
 num_epochs = 500
-for epoch in range(num_epochs):
+for epoch in range(num_epochs+1):
     model.train()
     train_loss, train_correct, train_total = 0, 0, 0
     for inputs, labels in train_loader:
@@ -88,6 +98,16 @@ for epoch in range(num_epochs):
     val_accuracies.append(100 * val_correct / val_total)
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Validation Loss: {loss:.4f}, Validation Accuracy: {100 * val_correct / val_total:.2f}%\n')
+    test_correct, test_total = 0, 0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            test_total += labels.size(0)
+            test_correct += (predicted == labels).sum().item()
+    test_accuracies.append(100 * test_correct / test_total)
+    if epoch % 10 == 0:
+        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test size: {test_total:.4f}, Test Accuracy: {100100 * test_correct / test_total:.2f}%\n')
 
 weights_first_layer = model.layer1.weight.data
 bias_first_layer = model.layer1.bias.data
@@ -103,6 +123,7 @@ plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 plt.plot(train_accuracies, label='Training Accuracy')
 plt.plot(val_accuracies, label='Validation Accuracy')
+plt.plot(test_accuracies, label='Test Accuracy')
 plt.title('Accuracy over Epochs')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')

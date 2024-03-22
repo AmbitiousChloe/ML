@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import ModifyData
 import random
 
-file_name = "ModifiedData.csv"
+file_name = "../ModifiedData.csv"
 
 # file_name = "clean_dataset.csv"
 # file_name = "pre_data.csv"
@@ -16,6 +15,20 @@ def make_onehot(indicies):
 # https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
 def softmax(z):
     return np.exp((z - np.max(z))) / np.sum(np.exp(z - np.max(z)))
+
+def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
+    df_shuffled = df.sample(frac=1, random_state=42)
+    X = df_shuffled.drop(columns='Label').to_numpy()
+    t = df_shuffled['Label'].to_numpy()
+    
+    total_size = len(df_shuffled)
+    train_size = total_size - (val_size + test_size)
+    
+    X_train, t_train = X[:train_size], t[:train_size]
+    X_valid, t_valid = X[train_size:train_size + val_size], t[train_size:train_size + val_size]
+    X_test, t_test = X[-test_size:], t[-test_size:]
+    
+    return X_train, t_train, X_valid, t_valid, X_test, t_test
 
 # From lab06
 class MLPModel(object):
@@ -81,7 +94,7 @@ class MLPModel(object):
         self.W1_bar = None
         self.b1_bar = None
 
-def train_sgd(model, X_train, t_train, X_valid, t_valid, alpha=0.001, n_epochs=500, batch_size=100):
+def train_sgd(model, X_train, t_train, X_valid, t_valid, alpha=0.001, n_epochs=100, batch_size=50):
     train_loss = []
     valid_loss = []
     niter = 0
@@ -125,10 +138,10 @@ def train_sgd(model, X_train, t_train, X_valid, t_valid, alpha=0.001, n_epochs=5
 if __name__ == "__main__":
     df = pd.read_csv(file_name).dropna()
     print(df.shape)
-    X_train, t_train, X_valid, t_valid, X_test, t_test = ModifyData.split_dataset(df=df, val_size=200, test_size=216)
+    X_train, t_train, X_valid, t_valid, X_test, t_test = split_dataset(df=df, val_size=200, test_size=216)
     print(X_train.shape, X_valid.shape, X_test.shape)
     num_features = X_train.shape[1]
-    num_hidden = 100
+    num_hidden = 25
     num_class = 4
 
     model = MLPModel(num_features=num_features, num_hidden=num_hidden, num_classes=num_class)
