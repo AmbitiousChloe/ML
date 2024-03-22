@@ -5,19 +5,21 @@ import challenge_basic
 
 file_name = "pre_data.csv"
 
-def splitDataset(df, val_size, test_size):
-    train_size = len(df) - (val_size + test_size)
-    random.shuffle(df)
-    D_train = df[:train_size]
-    D_valid = df[train_size:train_size + val_size]
-    D_test = df[-test_size:]
+import pandas as pd
+import numpy as np
+import random
 
-    t_train = D_train['Label']
-    X_train = D_train.drop('Label', axis=1)
-    t_valid = D_valid['Label']
-    X_valid = D_valid.drop('Label', axis=1)
-    t_test = D_test['Label']
-    X_test = D_test.drop('Label', axis=1)
+def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
+    df_shuffled = df.sample(frac=1, random_state=42)
+    X = df_shuffled.drop(columns='Label').to_numpy()
+    t = df_shuffled['Label'].to_numpy()
+    
+    total_size = len(df_shuffled)
+    train_size = total_size - (val_size + test_size)
+    
+    X_train, t_train = X[:train_size], t[:train_size]
+    X_valid, t_valid = X[train_size:train_size + val_size], t[train_size:train_size + val_size]
+    X_test, t_test = X[-test_size:], t[-test_size:]
     
     return X_train, t_train, X_valid, t_valid, X_test, t_test
 
@@ -47,12 +49,18 @@ if __name__ == "__main__":
     df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
     Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
     cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
-    df['Label'] = pd.Categorical(df['Label'], categories=cities)
-    Label_onehot = pd.get_dummies(df['Label'], prefix='Label', dtype=int)
+    city_to_number = {city: i for i, city in enumerate(cities)}
+    df['Label'] = df['Label'].map(city_to_number)
+    # df['Label'] = pd.Categorical(df['Label'], categories=cities)
+    # Label_onehot = pd.get_dummies(df['Label'], prefix='Label', dtype=int)
     
-    df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot, Label_onehot], axis=1)
+    df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot], axis=1)
 
-    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5_list', 'id', 'Q5', 'Q6', 'p', 'f', 's', 'o', 'Q10', 'Q6_max', 'Q6_min', 'Label'] # Edit Accordingly
+    df['Q7'] = (df['Q7'] - df['Q7'].mean()) / (df['Q7'].std() + 0.0001)
+    df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
+    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
+
+    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5_list', 'id', 'Q5', 'Q6', 'p', 'f', 's', 'o', 'Q10', 'Q6_max', 'Q6_min'] # Edit Accordingly
     for col in delete_columns:
         del df[col]
 
