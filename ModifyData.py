@@ -23,6 +23,40 @@ def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     
     return X_train, t_train, X_valid, t_valid, X_test, t_test
 
+
+def radm_dict(d):
+    value_to_keys = {}
+    for key, value in d.items():
+        if value in value_to_keys:
+            value_to_keys[value].append(key)
+        else:
+            value_to_keys[value] = [key]
+
+    new_dict = {}
+    for value, keys in value_to_keys.items():
+        if len(keys) > 1:
+            key_to_keep = random.choice(keys)
+            new_dict[key_to_keep] = value
+        else:
+            new_dict[keys[0]] = value
+    
+    return new_dict
+
+
+def to_dict(s):
+  samples = s.split(",")
+  result_dict = {}
+  for sample in samples:
+    # Split the pair on "=>" to separate the key and value
+    key, value = sample.split('=>')
+    if value == "":
+      break
+    # Convert value to integer and add to the dictionary
+    result_dict[key.strip()] = int(value.strip())
+    result_dict = radm_dict(result_dict)
+  return [max(result_dict, key=result_dict.get), min(result_dict, key=result_dict.get)]
+
+
 if __name__ == "__main__":
     df = pd.read_csv(file_name).dropna()
     df["Q1"] = df["Q1"].apply(challenge_basic.get_number)
@@ -30,9 +64,21 @@ if __name__ == "__main__":
     df["Q3"] = df["Q3"].apply(challenge_basic.get_number)
     df["Q4"] = df["Q4"].apply(challenge_basic.get_number)
     # Add codes
+    df['Q6_max'] = df['Q6'].apply(lambda x: to_dict(x)[0])
+    df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
+
     df["Q7"] = df["Q7"].apply(challenge_basic.to_numeric)
     df["Q8"] = df["Q8"].apply(challenge_basic.to_numeric)
     df["Q9"] = df["Q9"].apply(challenge_basic.to_numeric)
+
+    Q7_cond = df[['Q7']].apply(lambda x: (x >= -50) & (x <= 50)).all(axis=1)
+    Q8_cond = df[['Q8']].apply(lambda x: (x >= 1) & (x <= 15)).all(axis=1)
+    Q9_cond = df[['Q9']].apply(lambda x: (x >= 1) & (x <= 15)).all(axis=1)
+
+    df = df[Q7_cond]
+    df = df[Q8_cond]
+    df = df[Q9_cond]
+
     Q1_onehot = pd.get_dummies(df['Q1'], prefix='Q1', dtype=int)
     Q2_onehot = pd.get_dummies(df['Q2'], prefix='Q2', dtype=int)
     Q3_onehot = pd.get_dummies(df['Q3'], prefix='Q3', dtype=int)
