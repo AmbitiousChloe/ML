@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import challenge_basic
 
-file_name = "pre_data.csv"
+file_name = "clean_dataset.csv"
 
 import pandas as pd
 import numpy as np
@@ -71,13 +71,13 @@ if __name__ == "__main__":
     df["Q8"] = df["Q8"].apply(challenge_basic.to_numeric)
     df["Q9"] = df["Q9"].apply(challenge_basic.to_numeric)
 
-    Q7_cond = df[['Q7']].apply(lambda x: (x >= -50) & (x <= 50)).all(axis=1)
-    Q8_cond = df[['Q8']].apply(lambda x: (x >= 1) & (x <= 15)).all(axis=1)
-    Q9_cond = df[['Q9']].apply(lambda x: (x >= 1) & (x <= 15)).all(axis=1)
+    combined_condition = (
+        (df['Q7'] >= -50) & (df['Q7'] <= 50) &
+        (df['Q8'] >= 1) & (df['Q8'] <= 15) &
+        (df['Q9'] >= 1) & (df['Q9'] <= 15)
+    )
 
-    df = df[Q7_cond]
-    df = df[Q8_cond]
-    df = df[Q9_cond]
+    df = df[combined_condition]
 
     Q1_onehot = pd.get_dummies(df['Q1'], prefix='Q1', dtype=int)
     Q2_onehot = pd.get_dummies(df['Q2'], prefix='Q2', dtype=int)
@@ -106,10 +106,11 @@ if __name__ == "__main__":
     df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
     df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
-    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5_list', 'id', 'Q5', 'Q6', 'p', 'f', 's', 'o', 'Q10', 'Q6_max', 'Q6_min'] # Edit Accordingly
+    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6', 'Q10', 'Q6_max', 'Q6_min'] # Edit Accordingly
     for col in delete_columns:
         del df[col]
 
-    df = df.sample(frac=1, random_state=100)
+    # df = df.sample(frac=1, random_state=100)
     
-    df.to_csv("ModifiedData.csv", index=False)
+    # df.to_csv("UnNormalizedData.csv", index=False)
+    df.to_csv("NormalizedData.csv", index=False)
