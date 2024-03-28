@@ -33,3 +33,25 @@ y_pred = rf_model.predict(X_test_scaled)
 # Evaluate the model
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Test Accuracy: {accuracy:.4f}")
+trees = rf_model.estimators_
+
+# Example: Analyzing the first tree
+first_tree = trees[0]
+
+# Get the tree's properties
+tree_structure = first_tree.tree_
+
+# Basic properties
+print(f"Number of nodes in the first tree: {tree_structure.node_count}")
+print(f"Maximum depth of the first tree: {tree_structure.max_depth}")
+
+# You could also plot the tree. Here, we limit the depth for readability
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(20, 10))
+plot_tree(first_tree, filled=True, rounded=True, feature_names=X.columns, max_depth=3, fontsize=10)
+plt.show()
+
+
+

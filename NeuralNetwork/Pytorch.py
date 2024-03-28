@@ -7,21 +7,27 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-file_name = "../ModifiedData.csv"
-log = open("AccuracyLog.txt", 'w')
+file_name = "NormalizedData.csv"
+log = open("AccuracyLog_test.txt", 'w')
 parameterslog = open("ParametersLog.txt", 'w')
 data = pd.read_csv(file_name).dropna()
 num_labels = 4
 
-X = data.drop('Label', axis=1).values
-y = data['Label'].values
+def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
+    df_shuffled = df.sample(frac=1, random_state=42)
+    X = df_shuffled.drop(columns='Label').to_numpy()
+    t = df_shuffled['Label'].to_numpy()
+    
+    total_size = len(df_shuffled)
+    train_size = total_size - (val_size + test_size)
+    
+    X_train, t_train = X[:train_size], t[:train_size]
+    X_valid, t_valid = X[train_size:train_size + val_size], t[train_size:train_size + val_size]
+    X_test, t_test = X[-test_size:], t[-test_size:]
+    
+    return X_train, t_train, X_valid, t_valid, X_test, t_test
 
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-test = data.sample(frac=1, random_state=311)
-x_test_set = test.drop("Label", axis=1).values
-y_test_set = test["Label"].values
-X_test = x_test_set[:150]
-y_test = y_test_set[:150]
+X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
@@ -107,7 +113,7 @@ for epoch in range(num_epochs+1):
             test_correct += (predicted == labels).sum().item()
     test_accuracies.append(100 * test_correct / test_total)
     if epoch % 10 == 0:
-        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test size: {test_total:.4f}, Test Accuracy: {100100 * test_correct / test_total:.2f}%\n')
+        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test size: {test_total:.4f}, Test Accuracy: {100 * test_correct / test_total:.2f}%\n')
 
 weights_first_layer = model.layer1.weight.data
 bias_first_layer = model.layer1.bias.data
