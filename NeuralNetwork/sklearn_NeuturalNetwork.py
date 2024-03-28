@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 
 # Load your dataset
-df = pd.read_csv("ModifiedData.csv")  # Make sure to use the correct path to your CSV file
+df = pd.read_csv("NormalizedData.csv")  # Make sure to use the correct path to your CSV file
 
 # Assuming 'Label' is your target variable
 X = df.drop('Label', axis=1)
@@ -21,7 +21,7 @@ X_test_scaled = scaler.transform(X_test)
 
 # Define and train the model
 # Adjust hyperparameters as needed. Here's a starting point based on your custom model
-mlp = MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, alpha=1e-4,
+mlp = MLPClassifier(hidden_layer_sizes=(70,), max_iter=1000, alpha=1e-4,
                     solver='sgd', verbose=10, random_state=1,
                     learning_rate_init=0.01)
 
