@@ -30,7 +30,7 @@ if __name__ == "__main__":
     X_train, t_train, X_valid, t_valid, X_test, t_test = split_dataset(df=df, val_size=200, test_size=216)
     train_acc = []
     test_acc = []
-    for k in range(1, 50):
+    for k in range(1, 30):
         clf = KNeighborsClassifier(k)
         clf.fit(X_train, t_train)
         train_acc.append(clf.score(X_train, t_train))
@@ -43,15 +43,17 @@ if __name__ == "__main__":
     print(f"optimize test acc: {opt_test_acc}")
     print(f"optimize k: {opt_k + 1}")
     
-    k_values = list(range(1, 50))  # Assuming k values range from 1 to 12 for demonstration
+    k_values = list(range(1, 30))  # Assuming k values range from 1 to 12 for demonstration
 
 # Plotting
-    plt.figure(figsize=(12, 5))
-    plt.plot(train_acc, label='Training Accuracy')
-    plt.plot(test_acc, label='Test Accuracy')
+    plt.figure(figsize=(10, 6))
+    plt.plot(k_values, train_acc, label='Training Accuracy')
+    plt.plot(k_values, test_acc, label='Test Accuracy')
     plt.title('KNN Accuracy vs. k Value')
     plt.xlabel('k Value')
     plt.ylabel('Accuracy')
     plt.legend()
     plt.grid(True)
+    plt.xlim(left=1)
+    plt.xticks(k_values)
     plt.savefig("KNNgraph.png")
