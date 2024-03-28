@@ -24,18 +24,47 @@ def radm_dict(d):
     return new_dict
 
 
-def to_dict(s):
-  samples = s.split(",")
-  result_dict = {}
-  for sample in samples:
-    # Split the pair on "=>" to separate the key and value
-    key, value = sample.split('=>')
-    if value == "":
-      break
-    # Convert value to integer and add to the dictionary
-    result_dict[key.strip()] = int(value.strip())
-    result_dict = radm_dict(result_dict)
-  return [max(result_dict, key=result_dict.get), min(result_dict, key=result_dict.get)]
+# def to_dict(s):
+#   samples = s.split(",")
+#   result_dict = {}
+#   for sample in samples:
+#     # Split the pair on "=>" to separate the key and value
+#     key, value = sample.split('=>')
+#     if value == "":
+#       break
+#     # Convert value to integer and add to the dictionary
+#     result_dict[key.strip()] = int(value.strip())
+#     result_dict = radm_dict(result_dict)
+#   return [max(result_dict, key=result_dict.get), min(result_dict, key=result_dict.get)]
+
+
+def to_dict_complete(s):
+    def inverse_value(value):
+        if value == 1:
+            return 6
+        elif value == 2:
+            return 5
+        elif value == 3:
+            return 4
+        elif value == 4:
+            return 3
+        elif value == 5:
+            return 2
+        elif value == 6:
+            return 1
+        
+    samples = s.split(",")
+    result_dict = {}
+
+    for sample in samples:
+        # Split the pair on "=>" to separate the key and value
+        key, value = sample.split('=>')
+        if value == "":
+            break
+        # Convert value to integer and add to the dictionary
+        result_dict[key.strip()] = inverse_value(int(value.strip()))
+
+    return result_dict
 
 
 def process_data(filename: str) -> pd.DataFrame:
@@ -45,9 +74,18 @@ def process_data(filename: str) -> pd.DataFrame:
    df["Q3"] = df["Q3"].apply(challenge_basic.get_number)
    df["Q4"] = df["Q4"].apply(challenge_basic.get_number)
    
-   # Add codes
-   df['Q6_max'] = df['Q6'].apply(lambda x: to_dict(x)[0])
-   df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
+   # Q6 max min
+#    df['Q6_max'] = df['Q6'].apply(lambda x: to_dict(x)[0])
+#    df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
+   
+    # Q6 num
+#    df["Q6"] = df["Q6"].apply(lambda x: to_dict_complete(x))
+   df["Q6_Skyscr"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Skyscrapers", 0))
+   df["Q6_Sport"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Sport", 0)))
+   df["Q6_AM"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Art and Music", 0)))
+   df["Q6_Carnival"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Carnival", 0)))
+   df["Q6_Cuisine"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Cuisine", 0)))
+   df["Q6_Eco"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Economic", 0)))
    
    df["Q7"] = df["Q7"].apply(challenge_basic.to_numeric)
    df["Q8"] = df["Q8"].apply(challenge_basic.to_numeric)
@@ -69,11 +107,11 @@ def process_data(filename: str) -> pd.DataFrame:
     cat_name = f"{cat}"
     df[cat_name] = df["Q5"].apply(lambda s: challenge_basic.cat_in_s(s, cat))
 
-    Q6_categories = ['Skyscrapers', 'Sport', 'Art and Music', 'Carnival', 'Cuisine', 'Economic']
-    df['Q6_max'] = pd.Categorical(df['Q6_max'], categories=Q6_categories)
-    Q6_max_onehot = pd.get_dummies(df['Q6_max'], prefix='Q6_max', dtype=int)
-    df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
-    Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
+    # Q6_categories = ['Skyscrapers', 'Sport', 'Art and Music', 'Carnival', 'Cuisine', 'Economic']
+    # df['Q6_max'] = pd.Categorical(df['Q6_max'], categories=Q6_categories)
+    # Q6_max_onehot = pd.get_dummies(df['Q6_max'], prefix='Q6_max', dtype=int)
+    # df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
+    # Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
     cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
     city_to_number = {city: i for i, city in enumerate(cities)}
     df['Label'] = df['Label'].map(city_to_number)
