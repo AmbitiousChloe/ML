@@ -185,26 +185,27 @@ X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(df, val_size=200,
 
 vocab = []
 def get_vocab(X_train):
+    vocab = set()  # Use a set for efficiency in checking membership
+    pattern = r"[^\w\s]"  # This pattern matches anything that's not alphanumeric or whitespace
     for i in range(X_train.shape[0]):
-        pattern = r"[.?,;:-]"
-        q = re.sub(pattern, " ", X_train[i,3])
-        lst = q.split()
-        X_train[i,3] = lst
-        for w in lst:
-            if w not in vocab:
-                vocab.append(w)
-    return vocab
+        text = re.sub(pattern, " ", X_train[i, 3])
+        words = text.lower().split()
+        words = [word.strip() for word in words]  # Strip whitespace
+        vocab.update(words)  # Add cleaned words to the vocabulary
+    return sorted(vocab)  # Convert to a sorted list before returning
+
+def insert_feature(nparray, vocab):
+    features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
+    for i in range(nparray.shape[0]):
+        text = nparray[i, 3]
+        words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
+        for j, word in enumerate(vocab):
+            if word in words:
+                features[i, j] = 1.0
+    return features
+
 
 vocab = get_vocab(X_train)
-def insert_feature(nparray, vocab):   
-    wl = nparray[:, 3]    
-    x = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
-    for i in range(nparray.shape[0]):
-        for j in range(len(vocab)):
-            if vocab[j] in wl[i]:
-                x[i, j] = 1.0
-    return x
-
 features = insert_feature(X_train,  vocab)
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
 X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
@@ -224,8 +225,8 @@ X_test = np.concatenate((X_test[:, :3], X_test[:, 4:]), axis=1)
 # Instantiate and train the model
 num_features = X_train.shape[1]
 
-model = MLPModel(num_features, num_hidden=100, num_classes=4)  # Adjust parameters as necessary
-train_accuracies, val_accuracies = train(model, X_train, y_train, X_val, y_val, lr=0.001, epochs=400)
+model = MLPModel(num_features, num_hidden=220, num_classes=4)  # Adjust parameters as necessary
+train_accuracies, val_accuracies = train(model, X_train, y_train, X_val, y_val, lr=0.001, epochs=300)
 
 # Test the model
 y_pred_test = np.argmax(model.forward(X_test, training=False), axis=1)
