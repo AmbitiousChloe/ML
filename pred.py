@@ -39,33 +39,14 @@ def radm_dict(d):
 
 
 def to_dict_complete(s):
-    def inverse_value(value):
-        if value == 1:
-            return 6
-        elif value == 2:
-            return 5
-        elif value == 3:
-            return 4
-        elif value == 4:
-            return 3
-        elif value == 5:
-            return 2
-        elif value == 6:
-            return 1
-        
     samples = s.split(",")
     result_dict = {}
-
     for sample in samples:
-        # Split the pair on "=>" to separate the key and value
         key, value = sample.split('=>')
         if value == "":
             break
-        # Convert value to integer and add to the dictionary
-        result_dict[key.strip()] = inverse_value(int(value.strip()))
-
+        result_dict[key.strip()] = int(value.strip())
     return result_dict
-
 
 def process_data(filename: str) -> pd.DataFrame:
    df = pd.read_csv(file_name).dropna()
@@ -79,7 +60,7 @@ def process_data(filename: str) -> pd.DataFrame:
 #    df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
    
     # Q6 num
-#    df["Q6"] = df["Q6"].apply(lambda x: to_dict_complete(x))
+    # df["Q6"] = df["Q6"].apply(lambda x: to_dict_complete(x))
    df["Q6_Skyscr"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Skyscrapers", 0))
    df["Q6_Sport"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Sport", 0))
    df["Q6_AM"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Art and Music", 0))
@@ -119,7 +100,7 @@ def process_data(filename: str) -> pd.DataFrame:
    # Label_onehot = pd.get_dummies(df['Label'], prefix='Label', dtype=int)
     
    # df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot], axis=1)
-   df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_Skyscr, Q6_Sport, Q6_AM, Q6_Carnival, Q6_Cuisine, Q6_Eco], axis=1)
+   df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot], axis=1)
 
 
    df['Q7'] = (df['Q7'] - df['Q7'].mean()) / (df['Q7'].std() + 0.0001)
@@ -127,7 +108,7 @@ def process_data(filename: str) -> pd.DataFrame:
    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
    # delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6', 'Q10', 'Q6_max', 'Q6_min'] # Edit Accordingly
-   delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6', 'Q10'] # Edit Accordingly
+   delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6'] # Edit Accordingly
    for col in delete_columns:
     del df[col]
 
@@ -149,14 +130,4 @@ def predict_all(file: str):
 
 if __name__ == "__main__":
     df = process_data(file_name)
-   
-    keywords = ["dubai", "new york", "rio", "paris"]
-
-    # Create a combined condition
-    condition = df['Q10'].str.lower().contains(keywords[0], case=False)
-    for keyword in keywords[1:]:
-       condition |= df['Q10'].str.lower().contains(keyword, case=False)
-
-    subdf = df[condition]
-
-    print(subdf)
+    df.to_csv("TEST.csv", index=False)
