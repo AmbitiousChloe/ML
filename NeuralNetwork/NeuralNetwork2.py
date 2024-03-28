@@ -95,7 +95,7 @@ def process_data(filename: str) -> pd.DataFrame:
     return df
 
 def softmax(z):
-    print(z.shape[1])
+    
     exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
     return exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
@@ -188,7 +188,6 @@ def get_vocab(X_train):
     for i in range(X_train.shape[0]):
         pattern = r"[.?,;:-]"
         q = re.sub(pattern, " ", X_train[i,3])
-
         lst = q.split()
         X_train[i,3] = lst
         for w in lst:
@@ -199,26 +198,32 @@ def get_vocab(X_train):
 vocab = get_vocab(X_train)
 def insert_feature(nparray, vocab):   
     wl = nparray[:, 3]    
-    x = np.zeros((nparray.shape[0], len(vocab)), dtype=int)
+    x = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
     for i in range(nparray.shape[0]):
         for j in range(len(vocab)):
             if vocab[j] in wl[i]:
-                x[i, j] = 1
+                x[i, j] = 1.0
     return x
 
 features = insert_feature(X_train,  vocab)
-X_train = np.hstack((X_train, features))
+X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
+X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
 X_train = np.concatenate((X_train[:, :3], X_train[:, 4:]), axis=1)
 
-print(X_train[1,10:])
 valid_features = insert_feature(X_val, vocab)
-test_features = insert_feature(X_test, vocab)
-X_val = np.hstack((X_val, valid_features))
+X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
+X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
 X_val = np.concatenate((X_val[:, :3], X_val[:, 4:]), axis=1)
-X_test = np.hstack((X_test, test_features))
+
+test_features = insert_feature(X_test, vocab)
+X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
+X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
 X_test = np.concatenate((X_test[:, :3], X_test[:, 4:]), axis=1)
+
+
 # Instantiate and train the model
 num_features = X_train.shape[1]
+
 model = MLPModel(num_features, num_hidden=100, num_classes=4)  # Adjust parameters as necessary
 train_accuracies, val_accuracies = train(model, X_train, y_train, X_val, y_val, lr=0.001, epochs=400)
 
@@ -228,14 +233,14 @@ test_accuracy = np.mean(y_pred_test == y_test)
 print(y_pred_test)
 print(f"Test Accuracy: {test_accuracy:.4f}")
 
-plt.figure(figsize=(12, 5))
-plt.plot(train_accuracies, label='Training Accuracy')
-plt.plot(val_accuracies, label='Validation Accuracy')
-plt.title('Training and Validation Accuracy over Epochs')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.show()
+# plt.figure(figsize=(12, 5))
+# plt.plot(train_accuracies, label='Training Accuracy')
+# plt.plot(val_accuracies, label='Validation Accuracy')
+# plt.title('Training and Validation Accuracy over Epochs')
+# plt.xlabel('Epoch')
+# plt.ylabel('Accuracy')
+# plt.legend()
+# plt.show()
 
 
 
