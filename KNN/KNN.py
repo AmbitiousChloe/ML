@@ -1,11 +1,7 @@
-import re
-import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 import matplotlib.pyplot as plt
 
-# file_name = "clean_dataset.csv"
-# file_name = "pre_data.csv"
 random_state = 42
 file_name = "NormalizedData.csv"
 
