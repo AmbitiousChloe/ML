@@ -118,6 +118,13 @@ def process_data(filename: str) -> pd.DataFrame:
     # Q6 max min
    df['Q6_max'] = df['Q6'].apply(lambda x: to_dict(x)[0])
    df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
+
+    # Onehot Encoding
+   Q6_categories = ['Skyscrapers', 'Sport', 'Art and Music', 'Carnival', 'Cuisine', 'Economic']
+   df['Q6_max'] = pd.Categorical(df['Q6_max'], categories=Q6_categories)
+   Q6_max_onehot = pd.get_dummies(df['Q6_max'], prefix='Q6_max', dtype=int)
+   df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
+   Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
    
     # Q6 num
     # df["Q6"] = df["Q6"].apply(lambda x: to_dict_complete(x))sx
@@ -149,16 +156,19 @@ def process_data(filename: str) -> pd.DataFrame:
    df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
+   # fixing na in Q10
+   df['Q10'].fillna("", inplace=True)
+
     # map labels to numbers
    cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
    city_to_number = {city: i for i, city in enumerate(cities)}
    df['Label'] = df['Label'].map(city_to_number)
     
     # add extra colums to df
-   df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot], axis=1)
+   df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot], axis=1)
 
     # delete non useful columns
-   delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6'] # Edit Accordingly
+   delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6', 'Q6_max', 'Q6_min'] # Edit Accordingly
    for col in delete_columns:
     del df[col]
 

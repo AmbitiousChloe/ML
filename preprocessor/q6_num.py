@@ -130,6 +130,9 @@ def process_data(filename: str) -> pd.DataFrame:
    df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
+    # fixing na in Q10
+   df['Q10'].fillna("", inplace=True)
+
     # map labels to numbers
    cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
    city_to_number = {city: i for i, city in enumerate(cities)}
