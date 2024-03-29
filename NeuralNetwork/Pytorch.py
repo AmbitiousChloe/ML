@@ -45,7 +45,6 @@ def insert_feature(nparray, vocab):
     features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
     for i in range(nparray.shape[0]):
         text = nparray[i, 3]
-        print(nparray[i, :5])
         words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
         for j, word in enumerate(vocab):
             if word in words:
@@ -161,10 +160,23 @@ bias_first_layer = model.layer1.bias.data
 weights_sec_layer = model.layer2.weight.data
 bias_sec_layer = model.layer2.bias.data
 
-parameterslog.write(f"Weights of the first layer:\n{weights_first_layer}\n")
-parameterslog.write(f"Bias of the first layer:\n{bias_first_layer}\n\n\n")
-parameterslog.write(f"Weights of the second layer:\n{weights_sec_layer}\n")
-parameterslog.write(f"Bias of the second layer:\n{bias_sec_layer}\n")
+weights_first_layer_np = weights_first_layer.cpu().numpy()
+bias_first_layer_np = bias_first_layer.cpu().numpy()
+weights_sec_layer_np = weights_sec_layer.cpu().numpy()
+bias_sec_layer_np = bias_sec_layer.cpu().numpy()
+
+with np.printoptions(threshold=np.inf, linewidth=160, suppress=True):
+    weights_first_layer_str = np.array2string(weights_first_layer_np)
+    parameterslog.write(f"Weights of the first layer:\n{weights_first_layer_str}\n\n")
+    
+    bias_first_layer_str = np.array2string(bias_first_layer_np)
+    parameterslog.write(f"Bias of the first layer:\n{bias_first_layer_str}\n\n\n")
+    
+    weights_sec_layer_str = np.array2string(weights_sec_layer_np)
+    parameterslog.write(f"Weights of the second layer:\n{weights_sec_layer_str}\n\n")
+    
+    bias_sec_layer_str = np.array2string(bias_sec_layer_np)
+    parameterslog.write(f"Bias of the second layer:\n{bias_sec_layer_str}\n")
 
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
