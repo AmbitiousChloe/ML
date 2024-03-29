@@ -30,48 +30,45 @@ def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     return X_train, t_train, X_valid, t_valid, X_test, t_test
 
 data = pd.read_csv(file_name)
-del data["Q10"]
 
 X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
 vocab = []
 def get_vocab(X_train):
-    vocab = set()
-    pattern = r"[^\w\s]"
-    # Assuming the text is in the 4th column, adjust the index as necessary
-    texts = X_train.iloc[:, 3].fillna("").astype(str)  # Handle NaN values and ensure string type
+    vocab = set()  # Use a set for efficiency in checking membership
+    pattern = r"[^\w\s]"  # This pattern matches anything that's not alphanumeric or whitespace
+    for i in range(X_train.shape[0]):
+        text = re.sub(pattern, " ", X_train[i, 3])
+        words = text.lower().split()
+        words = [word.strip() for word in words]  # Strip whitespace
+        vocab.update(words)  # Add cleaned words to the vocabulary
+    return sorted(vocab)  # Convert to a sorted list before returning
 
-    for text in texts:
-        cleaned_text = re.sub(pattern, " ", text)
-        words = cleaned_text.lower().split()
-        vocab.update(words)
-    return sorted(vocab)
-
-
-def insert_feature(df, vocab):
-    # Extract and clean the text column, ensuring all entries are treated as strings
-    texts = df.iloc[:, 3].fillna("").astype(str).apply(lambda x: set(re.sub(r"[^\w\s]", " ", x).lower().split()))
-    features = np.zeros((len(texts), len(vocab)), dtype=np.float64)
-    for i, words in enumerate(texts):
+def insert_feature(nparray, vocab):
+    features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
+    for i in range(nparray.shape[0]):
+        text = nparray[i, 3]
+        print(nparray[i, :5])
+        words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
         for j, word in enumerate(vocab):
             if word in words:
                 features[i, j] = 1.0
     return features
 
-# features = insert_feature(X_train,  vocab)
-# X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
-# X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
-# X_train = np.concatenate((X_train[:, :3], X_train[:, 4:]), axis=1)
+features = insert_feature(X_train,  vocab)
+X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
+X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
+X_train = np.concatenate((X_train[:, :3], X_train[:, 4:]), axis=1)
 
-# valid_features = insert_feature(X_val, vocab)
-# X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
-# X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
-# X_val = np.concatenate((X_val[:, :3], X_val[:, 4:]), axis=1)
+valid_features = insert_feature(X_val, vocab)
+X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
+X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
+X_val = np.concatenate((X_val[:, :3], X_val[:, 4:]), axis=1)
 
-# test_features = insert_feature(X_test, vocab)
-# X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
-# X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
-# X_test = np.concatenate((X_test[:, :3], X_test[:, 4:]), axis=1)
+test_features = insert_feature(X_test, vocab)
+X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
+X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
+X_test = np.concatenate((X_test[:, :3], X_test[:, 4:]), axis=1)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
