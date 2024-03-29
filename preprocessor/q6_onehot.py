@@ -122,11 +122,11 @@ def process_data(filename: str) -> pd.DataFrame:
    df["Q9"].fillna(df["Q9"].mean(), inplace = True)
 
     # fixing na in Q10
-   df['Q10'].fillna("", inplace=True)
+   df['Q10'] = df['Q10'].fillna("").astype(str)
 
     # replace all the outliers by given number
-   q7_min = -50
-   q7_max = 50
+   q7_min = -30
+   q7_max = 45
    q89_min = 1
    Q89_max = 15
    df.loc[(df['Q7'] < q7_min), 'Q7'] = q7_min
