@@ -121,9 +121,6 @@ def process_data(filename: str) -> pd.DataFrame:
    df["Q8"].fillna(df["Q8"].mean(), inplace = True)
    df["Q9"].fillna(df["Q9"].mean(), inplace = True)
 
-    # fixing na in Q10
-   df['Q10'] = df['Q10'].fillna("").astype(str)
-
     # replace all the outliers by given number
    q7_min = -30
    q7_max = 45
@@ -142,7 +139,7 @@ def process_data(filename: str) -> pd.DataFrame:
    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
     # fixing na in Q10
-   df['Q10'].fillna("", inplace=True)
+   df['Q10'] = df['Q10'].fillna(" ").astype(str)
 
     # map labels to numbers
    cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']

@@ -1,24 +1,21 @@
-from sklearn.model_selection import train_test_split
-import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import TensorDataset
 import numpy as np
 import pandas as pd
-import challenge_basic
 import matplotlib.pyplot as plt
 import re
 
-file_name = "nor_num.csv"
+file_name = "nor_oneH.csv"
 log = open("AccuracyLog.txt", 'w')
 parameterslog = open("ParametersLog.txt", 'w')
 num_labels = 4
 
 def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
-    df_shuffled = df.sample(frac=1, random_state=42)
-    X = df_shuffled.drop(columns='Label').to_numpy()
-    t = df_shuffled['Label'].to_numpy()
+    df_shuffled = df.sample(frac=1)
+    X = df_shuffled.drop(columns='Label').values
+    t = df_shuffled['Label'].values
     
     total_size = len(df_shuffled)
     train_size = total_size - (val_size + test_size)
