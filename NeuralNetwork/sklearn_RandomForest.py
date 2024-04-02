@@ -151,7 +151,7 @@ X_test_scaled = scaler.transform(X_test_combined)
 # Define the Random Forest model
 # n_estimators is the number of trees in the forest
 # random_state is set for reproducibility of results
-rf_model = RandomForestClassifier(n_estimators=300, random_state=42)
+rf_model = RandomForestClassifier(n_estimators=1000, max_depth=100, random_state=42)
 
 # Train the model
 rf_model.fit(X_train_scaled, y_train)
