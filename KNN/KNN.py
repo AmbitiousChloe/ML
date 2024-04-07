@@ -44,7 +44,7 @@ def insert_feature(nparray, vocab):
     return features
 
 if __name__ == "__main__":
-    df = pd.read_csv(file2)
+    df = pd.read_csv(file3)
     df['Q10'].fillna("", inplace=True)
     # del df['Q10']
     X_train, t_train, X_test, t_test = split_dataset_knn(df=df, test_size=216)

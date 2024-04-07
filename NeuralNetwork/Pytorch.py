@@ -10,94 +10,10 @@ import challenge_basic
 import matplotlib.pyplot as plt
 import re
 
-file_name = "clean_dataset.csv"
+file_name = "nor_num.csv"
 log = open("AccuracyLog.txt", 'w')
 parameterslog = open("ParametersLog.txt", 'w')
 num_labels = 4
-
-def radm_dict(d):
-    value_to_keys = {}
-    for key, value in d.items():
-        if value in value_to_keys:
-            value_to_keys[value].append(key)
-        else:
-            value_to_keys[value] = [key]
-
-    new_dict = {}
-    for value, keys in value_to_keys.items():
-        if len(keys) > 1:
-            key_to_keep = random.choice(keys)
-            new_dict[key_to_keep] = value
-        else:
-            new_dict[keys[0]] = value
-    
-    return new_dict
-
-def to_dict(s):
-  samples = s.split(",")
-  result_dict = {}
-  for sample in samples:
-    # Split the pair on "=>" to separate the key and value
-    key, value = sample.split('=>')
-    if value == "":
-      break
-    # Convert value to integer and add to the dictionary
-    result_dict[key.strip()] = int(value.strip())
-    result_dict = radm_dict(result_dict)
-  return [max(result_dict, key=result_dict.get), min(result_dict, key=result_dict.get)]
-
-def process_data(filename: str) -> pd.DataFrame:
-   df = pd.read_csv(file_name).dropna()
-   df["Q1"] = df["Q1"].apply(challenge_basic.get_number)
-   df["Q2"] = df["Q2"].apply(challenge_basic.get_number)
-   df["Q3"] = df["Q3"].apply(challenge_basic.get_number)
-   df["Q4"] = df["Q4"].apply(challenge_basic.get_number)
-   
-   # Add codes
-   df['Q6_max'] = df['Q6'].apply(lambda x: to_dict(x)[0])
-   df['Q6_min'] = df['Q6'].apply(lambda x: to_dict(x)[1])
-   
-   df["Q7"] = df["Q7"].apply(challenge_basic.to_numeric)
-   df["Q8"] = df["Q8"].apply(challenge_basic.to_numeric)
-   df["Q9"] = df["Q9"].apply(challenge_basic.to_numeric)
-   
-   combined_condition = (
-        (df['Q7'] >= -50) & (df['Q7'] <= 50) &
-        (df['Q8'] >= 1) & (df['Q8'] <= 15) &
-        (df['Q9'] >= 1) & (df['Q9'] <= 15)
-    )
-   df = df[combined_condition]
-   
-   Q1_onehot = pd.get_dummies(df['Q1'], prefix='Q1', dtype=int)
-   Q2_onehot = pd.get_dummies(df['Q2'], prefix='Q2', dtype=int)
-   Q3_onehot = pd.get_dummies(df['Q3'], prefix='Q3', dtype=int)
-   Q4_onehot = pd.get_dummies(df['Q4'], prefix='Q4', dtype=int)
-   
-   for cat in ["Partner", "Friends", "Siblings", "Co-worker"]:
-    cat_name = f"{cat}"
-    df[cat_name] = df["Q5"].apply(lambda s: challenge_basic.cat_in_s(s, cat))
-
-    Q6_categories = ['Skyscrapers', 'Sport', 'Art and Music', 'Carnival', 'Cuisine', 'Economic']
-    df['Q6_max'] = pd.Categorical(df['Q6_max'], categories=Q6_categories)
-    Q6_max_onehot = pd.get_dummies(df['Q6_max'], prefix='Q6_max', dtype=int)
-    df['Q6_min'] = pd.Categorical(df['Q6_min'], categories=Q6_categories)
-    Q6_min_onehot = pd.get_dummies(df['Q6_min'], prefix='Q6_min', dtype=int)
-    cities = ['Dubai', 'Rio de Janeiro', 'New York City', 'Paris']
-    city_to_number = {city: i for i, city in enumerate(cities)}
-    df['Label'] = df['Label'].map(city_to_number)
-    # df['Label'] = pd.Categorical(df['Label'], categories=cities)
-    # Label_onehot = pd.get_dummies(df['Label'], prefix='Label', dtype=int)
-    
-    df = pd.concat([df, Q1_onehot, Q2_onehot, Q3_onehot, Q4_onehot, Q6_max_onehot, Q6_min_onehot], axis=1)
-
-    df['Q7'] = (df['Q7'] - df['Q7'].mean()) / (df['Q7'].std() + 0.0001)
-    df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
-    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
-
-    delete_columns = ['Q1', 'Q2', 'Q3', 'Q4', 'id', 'Q5', 'Q6', 'Q6_max', 'Q6_min']
-    for col in delete_columns:
-        del df[col]
-    return df
 
 def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     df_shuffled = df.sample(frac=1, random_state=42)
@@ -113,31 +29,31 @@ def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     
     return X_train, t_train, X_valid, t_valid, X_test, t_test
 
-data = process_data(file_name)
+data = pd.read_csv(file_name)
 
 X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
 vocab = []
 def get_vocab(X_train):
+    vocab = set()  # Use a set for efficiency in checking membership
+    pattern = r"[^\w\s]"  # This pattern matches anything that's not alphanumeric or whitespace
     for i in range(X_train.shape[0]):
-        pattern = r"[.?,;:-]"
-        q = re.sub(pattern, " ", X_train[i,3])
-        lst = q.split()
-        X_train[i,3] = lst
-        for w in lst:
-            if w not in vocab:
-                vocab.append(w)
-    return vocab
+        text = re.sub(pattern, " ", X_train[i, 3])
+        words = text.lower().split()
+        words = [word.strip() for word in words]  # Strip whitespace
+        vocab.update(words)  # Add cleaned words to the vocabulary
+    return sorted(vocab)  # Convert to a sorted list before returning
 
-vocab = get_vocab(X_train)
-def insert_feature(nparray, vocab):   
-    wl = nparray[:, 3]    
-    x = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
+def insert_feature(nparray, vocab):
+    features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
     for i in range(nparray.shape[0]):
-        for j in range(len(vocab)):
-            if vocab[j] in wl[i]:
-                x[i, j] = 1.0
-    return x
+        text = nparray[i, 3]
+        print(nparray[i, :5])
+        words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
+        for j, word in enumerate(vocab):
+            if word in words:
+                features[i, j] = 1.0
+    return features
 
 features = insert_feature(X_train,  vocab)
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
@@ -179,9 +95,9 @@ class TwoLayerNN(nn.Module):
         return out
 
 batch_size = 64
-train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = DataLoader(dataset=test_dataset, batch_size=150, shuffle=False)
+# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+# val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
+# test_loader = DataLoader(dataset=test_dataset, batch_size=150, shuffle=False)
 
 input_size = X_train.shape[1]
 hidden_size = 20
@@ -201,44 +117,47 @@ num_epochs = 500
 for epoch in range(num_epochs+1):
     model.train()
     train_loss, train_correct, train_total = 0, 0, 0
-    for inputs, labels in train_loader:
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        train_loss += loss.item()
-        _, predicted = torch.max(outputs.data, 1)
-        train_total += labels.size(0)
-        train_correct += (predicted == labels).sum().item()
-    train_losses.append(train_loss / len(train_loader))
+    # Training step using the full training dataset
+    optimizer.zero_grad()
+    outputs = model(X_train_tensor)
+    loss = criterion(outputs, y_train_tensor)
+    loss.backward()
+    optimizer.step()
+    train_loss = loss.item()
+    _, predicted = torch.max(outputs.data, 1)
+    train_total = y_train_tensor.size(0)
+    train_correct = (predicted == y_train_tensor).sum().item()
+    train_losses.append(train_loss)
     train_accuracies.append(100 * train_correct / train_total)
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss:.4f}, Train Accuracy: {100 * train_correct / train_total:.2f}%\n')
+
+    # Evaluate on the full validation dataset
     model.eval()
     val_loss, val_correct, val_total = 0, 0, 0
     with torch.no_grad():
-        for inputs, labels in val_loader:
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            val_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            val_total += labels.size(0)
-            val_correct += (predicted == labels).sum().item()
-    val_losses.append(val_loss / len(val_loader))
+        outputs = model(X_val_tensor)
+        loss = criterion(outputs, y_val_tensor)
+        val_loss = loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        val_total = y_val_tensor.size(0)
+        val_correct = (predicted == y_val_tensor).sum().item()
+    val_losses.append(val_loss)
     val_accuracies.append(100 * val_correct / val_total)
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Validation Loss: {loss:.4f}, Validation Accuracy: {100 * val_correct / val_total:.2f}%\n')
+    
+    # Evaluate on the full test dataset
     test_correct, test_total = 0, 0
     with torch.no_grad():
-        for inputs, labels in test_loader:
-            outputs = model(inputs)
-            _, predicted = torch.max(outputs.data, 1)
-            test_total += labels.size(0)
-            test_correct += (predicted == labels).sum().item()
+        outputs = model(X_test_tensor)
+        _, predicted = torch.max(outputs.data, 1)
+        test_total = y_test_tensor.size(0)
+        test_correct = (predicted == y_test_tensor).sum().item()
     test_accuracies.append(100 * test_correct / test_total)
     if epoch % 10 == 0:
-        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test size: {test_total:.4f}, Test Accuracy: {100 * test_correct / test_total:.2f}%\n')
+        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test Accuracy: {100 * test_correct / test_total:.2f}%\n')
+
 
 weights_first_layer = model.layer1.weight.data
 bias_first_layer = model.layer1.bias.data

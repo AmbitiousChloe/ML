@@ -1,0 +1,33 @@
+Test Accuracy: 0.8844
+Test Accuracy: 0.9014
+Test Accuracy: 0.8571
+Test Accuracy: 0.8639
+Test Accuracy: 0.8844
+Test Accuracy: 0.8946
+Test Accuracy: 0.8946
+Test Accuracy: 0.9014
+Test Accuracy: 0.8810
+Test Accuracy: 0.8707
+Test Accuracy: 0.8810
+
+
+Test Accuracy: 0.8639
+
+
+Test Accuracy: 0.9116
+
+
+Test Accuracy: 0.8776
+
+
+Test Accuracy: 0.8673
+
+
+Test Accuracy: 0.8844
+
+
+Test Accuracy: 0.8537
+Test Accuracy: 0.8878
+Test Accuracy: 0.8537
+Test Accuracy: 0.9014
+Test Accuracy: 0.8980

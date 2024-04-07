@@ -34,7 +34,7 @@ def get_vocab(X_train):
         cleaned_text = re.sub(pattern, " ", text)
         words = cleaned_text.lower().split()
         vocab.update(words)
-    return sorted(vocab)
+    return vocab
 
 
 def insert_feature(df, vocab):
@@ -50,6 +50,12 @@ def insert_feature(df, vocab):
 
 # Apply feature extraction
 vocab = get_vocab(X_train)
+# vocab2 = get_vocab(X_test)
+
+# final_vocab = vocab.union(vocab2)
+# print(len(vocab))
+# print(len(vocab2))
+# print(len(final_vocab))
 X_train_features = insert_feature(X_train, vocab)
 X_test_features = insert_feature(X_test, vocab)
 
@@ -68,7 +74,7 @@ X_test_scaled = scaler.transform(X_test_combined)
 # Define and train the model
 # Adjust hyperparameters as needed. Here's a starting point based on your custom model
 mlp = MLPClassifier(hidden_layer_sizes=(150), max_iter=1000, alpha=1e-4,
-                    solver='sgd', verbose=10, random_state=1,
+                    solver='sgd', 
                     learning_rate_init=0.01)
 
 mlp.fit(X_train_scaled, y_train)
