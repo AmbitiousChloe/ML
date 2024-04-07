@@ -12,6 +12,9 @@ log = open("AccuracyLog.txt", 'w')
 parameterslog = open("ParametersLog.txt", 'w')
 vocabList = open("Vocabulary.txt", "w", encoding="utf-8")
 num_labels = 4
+wordsList = []
+with open("words.txt", 'r') as file:
+    wordsList = [line.strip() for line in file.readlines()]
 
 def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     df_shuffled = df.sample(frac=1, random_state=42)
@@ -31,21 +34,22 @@ data = pd.read_csv(file_name)
 
 X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
-vocab = []
 def get_vocab(X_train):
-    vocab = set()
+    vocab = []
     pattern = r"[^\w\s]"
     for i in range(X_train.shape[0]):
         text = re.sub(pattern, " ", X_train[i, 3])
         words = text.lower().split()
         words = [word.strip() for word in words]
-        vocab.update(words)
+        for word in words:
+            if word in wordsList and word not in vocab:
+                vocab.append(word)
     return sorted(vocab)
 
 def insert_feature(data, vocab):
     features = np.zeros((data.shape[0], len(vocab)), dtype=float)
     for i in range(data.shape[0]):
-        text = data[i]
+        text = data[i, 3]
         words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
         for word in words:
             if word in vocab:

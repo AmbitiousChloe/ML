@@ -164,5 +164,5 @@ def process_data(filename: str) -> pd.DataFrame:
 if __name__ == "__main__":
     df = process_data(file_name)
     df_ori = pd.read_csv(file_name)
-    df.to_csv("nor_oneH2.csv", index=False)
+    df.to_csv("nor_oneH.csv", index=False)
     print(df.columns[df.isna().any()].tolist())
