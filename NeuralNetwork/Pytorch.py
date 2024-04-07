@@ -10,10 +10,11 @@ import re
 file_name = "nor_oneH.csv"
 log = open("AccuracyLog.txt", 'w')
 parameterslog = open("ParametersLog.txt", 'w')
+vocabList = open("Vocabulary.txt", "w", encoding="utf-8")
 num_labels = 4
 
 def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
-    df_shuffled = df.sample(frac=1)
+    df_shuffled = df.sample(frac=1, random_state=42)
     X = df_shuffled.drop(columns='Label').values
     t = df_shuffled['Label'].values
     
@@ -32,26 +33,28 @@ X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
 vocab = []
 def get_vocab(X_train):
-    vocab = set()  # Use a set for efficiency in checking membership
-    pattern = r"[^\w\s]"  # This pattern matches anything that's not alphanumeric or whitespace
+    vocab = set()
+    pattern = r"[^\w\s]"
     for i in range(X_train.shape[0]):
         text = re.sub(pattern, " ", X_train[i, 3])
         words = text.lower().split()
-        words = [word.strip() for word in words]  # Strip whitespace
-        vocab.update(words)  # Add cleaned words to the vocabulary
-    return sorted(vocab)  # Convert to a sorted list before returning
+        words = [word.strip() for word in words]
+        vocab.update(words)
+    return sorted(vocab)
 
-def insert_feature(nparray, vocab):
-    features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
-    for i in range(nparray.shape[0]):
-        text = nparray[i, 3]
+def insert_feature(data, vocab):
+    features = np.zeros((data.shape[0], len(vocab)), dtype=float)
+    for i in range(data.shape[0]):
+        text = data[i]
         words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
-        for j, word in enumerate(vocab):
-            if word in words:
-                features[i, j] = 1.0
+        for word in words:
+            if word in vocab:
+                features[i, vocab.index(word)] = 1.0
     return features
 
-features = insert_feature(X_train,  vocab)
+vocab = get_vocab(X_train)
+vocabList.write(str(vocab))
+features = insert_feature(X_train, vocab)
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
 X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
 X_train = np.concatenate((X_train[:, :3], X_train[:, 4:]), axis=1)
@@ -91,29 +94,23 @@ class TwoLayerNN(nn.Module):
         return out
 
 batch_size = 64
-# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-# val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
-# test_loader = DataLoader(dataset=test_dataset, batch_size=150, shuffle=False)
 
 input_size = X_train.shape[1]
-hidden_size = 20
+hidden_size = 50
 output_size = num_labels
 
-# Model, criterion, and optimizer initialization remains the same
 model = TwoLayerNN(input_size, hidden_size, output_size)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Initialize lists to track the accuracy and loss over time for both training and validation sets
 train_losses, val_losses = [], []
 train_accuracies, val_accuracies = [], []
 test_accuracies = []
 
-num_epochs = 500
+num_epochs = 200
 for epoch in range(num_epochs+1):
     model.train()
     train_loss, train_correct, train_total = 0, 0, 0
-    # Training step using the full training dataset
     optimizer.zero_grad()
     outputs = model(X_train_tensor)
     loss = criterion(outputs, y_train_tensor)
@@ -128,7 +125,6 @@ for epoch in range(num_epochs+1):
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss:.4f}, Train Accuracy: {100 * train_correct / train_total:.2f}%\n')
 
-    # Evaluate on the full validation dataset
     model.eval()
     val_loss, val_correct, val_total = 0, 0, 0
     with torch.no_grad():
@@ -143,7 +139,6 @@ for epoch in range(num_epochs+1):
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Validation Loss: {loss:.4f}, Validation Accuracy: {100 * val_correct / val_total:.2f}%\n')
     
-    # Evaluate on the full test dataset
     test_correct, test_total = 0, 0
     with torch.no_grad():
         outputs = model(X_test_tensor)
@@ -165,18 +160,10 @@ bias_first_layer_np = bias_first_layer.cpu().numpy()
 weights_sec_layer_np = weights_sec_layer.cpu().numpy()
 bias_sec_layer_np = bias_sec_layer.cpu().numpy()
 
-with np.printoptions(threshold=np.inf, linewidth=160, suppress=True):
-    weights_first_layer_str = np.array2string(weights_first_layer_np)
-    parameterslog.write(f"Weights of the first layer:\n{weights_first_layer_str}\n\n")
-    
-    bias_first_layer_str = np.array2string(bias_first_layer_np)
-    parameterslog.write(f"Bias of the first layer:\n{bias_first_layer_str}\n\n\n")
-    
-    weights_sec_layer_str = np.array2string(weights_sec_layer_np)
-    parameterslog.write(f"Weights of the second layer:\n{weights_sec_layer_str}\n\n")
-    
-    bias_sec_layer_str = np.array2string(bias_sec_layer_np)
-    parameterslog.write(f"Bias of the second layer:\n{bias_sec_layer_str}\n")
+np.savetxt('weights_first_layer.txt', weights_first_layer_np)
+np.savetxt('bias_first_layer.txt', bias_first_layer_np)
+np.savetxt('weights_second_layer.txt', weights_sec_layer_np)
+np.savetxt('bias_second_layer.txt', bias_sec_layer_np)
 
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
