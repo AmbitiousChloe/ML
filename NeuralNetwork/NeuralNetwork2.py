@@ -242,6 +242,3 @@ print(f"Test Accuracy: {test_accuracy:.4f}")
 # plt.ylabel('Accuracy')
 # plt.legend()
 # plt.show()
-
-
-
