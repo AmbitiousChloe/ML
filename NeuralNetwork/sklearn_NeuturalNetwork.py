@@ -13,7 +13,7 @@ wordsList=[]
 with open("words.txt", 'r') as file:
     wordsList = [line.lower().strip() for line in file.readlines()]
     
-file_name = "nor_num.csv"
+file_name = "nor_oneH.csv"
 
 # Load your dataset
 df = pd.read_csv(file_name)

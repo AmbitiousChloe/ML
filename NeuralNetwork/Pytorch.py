@@ -59,19 +59,17 @@ def insert_feature(data, vocab):
 vocab = get_vocab(X_train)
 vocabList.write(str(vocab))
 features = insert_feature(X_train, vocab)
+print(X_train[:,3], X_train[:,4])
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
 X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
-X_train = np.concatenate((X_train[:, :3], X_train[:, 4:]), axis=1)
 
 valid_features = insert_feature(X_val, vocab)
 X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
 X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
-X_val = np.concatenate((X_val[:, :3], X_val[:, 4:]), axis=1)
 
 test_features = insert_feature(X_test, vocab)
 X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
 X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
-X_test = np.concatenate((X_test[:, :3], X_test[:, 4:]), axis=1)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
