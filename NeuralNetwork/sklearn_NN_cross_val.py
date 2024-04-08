@@ -73,8 +73,8 @@ conf_matrix_aggregated = confusion_matrix(all_true_labels, all_predictions)
 
 fig, ax = plt.subplots(figsize=(8, 8))
 sns.heatmap(conf_matrix_aggregated, annot=True, fmt="d", cmap="Blues", ax=ax,
-            xticklabels=["Class 1", "Class 2", "Class 3", "Class 4"],
-            yticklabels=["Class 1", "Class 2", "Class 3", "Class 4"])
+            xticklabels=['Dubai', 'Rio de Janeiro', 'New York City', 'Paris'],
+            yticklabels=['Dubai', 'Rio de Janeiro', 'New York City', 'Paris'])
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
 plt.title('Aggregated Confusion Matrix')

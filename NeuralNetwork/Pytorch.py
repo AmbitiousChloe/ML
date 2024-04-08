@@ -59,7 +59,6 @@ def insert_feature(data, vocab):
 vocab = get_vocab(X_train)
 vocabList.write(str(vocab))
 features = insert_feature(X_train, vocab)
-print(X_train[:,3], X_train[:,4])
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
 X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
 
@@ -103,14 +102,14 @@ output_size = num_labels
 
 model = TwoLayerNN(input_size, hidden_size, output_size)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
 
 train_losses, val_losses = [], []
 train_accuracies, val_accuracies = [], []
 test_accuracies = []
 
-num_epochs = 200
-for epoch in range(num_epochs+1):
+num_epochs = 500
+for epoch in range(num_epochs):
     model.train()
     train_loss, train_correct, train_total = 0, 0, 0
     optimizer.zero_grad()
