@@ -119,17 +119,16 @@ def process_data(filename: str):
     df["Q8"].fillna(df["Q8"].mean(), inplace = True)
     df["Q9"].fillna(df["Q9"].mean(), inplace = True)
 
-    # replace all the outliers by given number
     q7_min = -30
     q7_max = 45
     q89_min = 1
-    Q89_max = 15
+    q89_max = 15
     df.loc[(df['Q7'] < q7_min), 'Q7'] = q7_min
     df.loc[(df['Q7'] > q7_max), 'Q7'] = q7_max
     df.loc[(df['Q8'] < q89_min), 'Q8'] = q89_min
-    df.loc[(df['Q9'] > Q89_max), 'Q9'] = Q89_max
-    df.loc[(df['Q8'] < q89_min), 'Q8'] = q89_min
-    df.loc[(df['Q9'] > Q89_max), 'Q9'] = Q89_max
+    df.loc[(df['Q8'] > q89_max), 'Q8'] = q89_max
+    df.loc[(df['Q9'] < q89_min), 'Q9'] = q89_min
+    df.loc[(df['Q9'] > q89_max), 'Q9'] = q89_max
     
     # normalizing
     df['Q7'] = (df['Q7'] - df['Q7'].mean()) / (df['Q7'].std() + 0.0001)
