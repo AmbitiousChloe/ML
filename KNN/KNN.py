@@ -14,6 +14,10 @@ import seaborn as sns
 
 file2 = 'nor_num.csv'
 file3 = 'nor_oneH.csv'
+num_labels = 4
+wordsList = []
+with open("words.txt", 'r') as file:
+    wordsList = [line.strip() for line in file.readlines()]
 
 def split_dataset(df, val_size, test_size):
     df_shuffled = df.sample(frac=1, random_state=42)
@@ -28,24 +32,27 @@ def split_dataset(df, val_size, test_size):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 def get_vocab(X_train):
-    vocab = set()  # Use a set for efficiency in checking membership
-    pattern = r"[^\w\s]"  # This pattern matches anything that's not alphanumeric or whitespace
+    vocab = []
+    pattern = r"[^\w\s]"
     for i in range(X_train.shape[0]):
         text = re.sub(pattern, " ", X_train[i, 3])
         words = text.lower().split()
-        words = [word.strip() for word in words]  # Strip whitespace
-        vocab.update(words)  # Add cleaned words to the vocabulary
-    return sorted(vocab)  # Convert to a sorted list before returning
+        words = [word.strip() for word in words]
+        for word in words:
+            if word in wordsList and word not in vocab:
+                vocab.append(word)
+    return sorted(vocab)
 
-def insert_feature(nparray, vocab):
-    features = np.zeros((nparray.shape[0], len(vocab)), dtype=float)
-    for i in range(nparray.shape[0]):
-        text = nparray[i, 3]
+def insert_feature(data, vocab):
+    features = np.zeros((data.shape[0], len(vocab)), dtype=float)
+    for i in range(data.shape[0]):
+        text = data[i, 3]
         words = set(re.sub(r"[^\w\s]", " ", text).lower().split())
-        for j, word in enumerate(vocab):
-            if word in words:
-                features[i, j] = 1.0
+        for word in words:
+            if word in vocab:
+                features[i, vocab.index(word)] = 1.0
     return features
+
 
 def cosine_similarity(X, v):
     c = np.zeros(X.shape[0], None, order='F')
