@@ -90,7 +90,7 @@ def compute_accuracy(X_new, y_new, X_train, y_train, k):
     return num_correct / num_predictions
 
 if __name__ == "__main__":
-    df = pd.read_csv(file2)
+    df = pd.read_csv(file3)
     df['Q10'].fillna("", inplace=True)
     # del df['Q10']
     X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(df, val_size=200, test_size=200)
