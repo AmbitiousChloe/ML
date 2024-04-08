@@ -14,7 +14,7 @@ vocabList = open("Vocabulary.txt", "w", encoding="utf-8")
 num_labels = 4
 wordsList = []
 with open("words.txt", 'r') as file:
-    wordsList = [line.strip() for line in file.readlines()]
+    wordsList = [line.lower().strip() for line in file.readlines()]
 
 def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     df_shuffled = df.sample(frac=1, random_state=42)

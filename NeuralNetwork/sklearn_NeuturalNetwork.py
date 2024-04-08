@@ -10,8 +10,12 @@ import random
 import challenge_basic
 import re
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
 
-
+wordsList=[]
+with open("words.txt", 'r') as file:
+    wordsList = [line.lower().strip() for line in file.readlines()]
+    
 file_name = "nor_oneH.csv"
 
 # Load your dataset
@@ -29,11 +33,10 @@ def get_vocab(X_train):
     pattern = r"[^\w\s]"
     # Assuming the text is in the 4th column, adjust the index as necessary
     texts = X_train.iloc[:, 3].fillna("").astype(str)  # Handle NaN values and ensure string type
-
     for text in texts:
         cleaned_text = re.sub(pattern, " ", text)
         words = cleaned_text.lower().split()
-        vocab.update(words)
+        vocab.update(word for word in words if word in wordsList)
     return vocab
 
 
@@ -50,12 +53,7 @@ def insert_feature(df, vocab):
 
 # Apply feature extraction
 vocab = get_vocab(X_train)
-# vocab2 = get_vocab(X_test)
 
-# final_vocab = vocab.union(vocab2)
-# print(len(vocab))
-# print(len(vocab2))
-# print(len(final_vocab))
 X_train_features = insert_feature(X_train, vocab)
 X_test_features = insert_feature(X_test, vocab)
 
@@ -63,25 +61,22 @@ X_test_features = insert_feature(X_test, vocab)
 X_train_combined = np.hstack([X_train.drop(X_train.columns[3], axis=1).values.astype(np.float64), X_train_features])
 X_test_combined = np.hstack([X_test.drop(X_test.columns[3], axis=1).values.astype(np.float64), X_test_features])
 
-# Scale the data
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train_combined)
-X_test_scaled = scaler.transform(X_test_combined)
-
-# The rest of your sklearn model definition, training, and evaluation remains the same...
-
-
 # Define and train the model
 # Adjust hyperparameters as needed. Here's a starting point based on your custom model
-mlp = MLPClassifier(hidden_layer_sizes=(150), max_iter=1000, alpha=1e-4,
-                    solver='sgd', 
+mlp = MLPClassifier(hidden_layer_sizes=(150), max_iter=250, alpha=1e-4,
+                    solver='sgd', verbose=True,
                     learning_rate_init=0.01)
 
-mlp.fit(X_train_scaled, y_train)
+mlp.fit(X_train_combined, y_train)
 
 # Make predictions and evaluate the model
-y_pred = mlp.predict(X_test_scaled)
+y_pred = mlp.predict(X_test_combined)
 accuracy = accuracy_score(y_test, y_pred)
 
 print(f"Test Accuracy: {accuracy:.4f}")
+y_train_pred = mlp.predict(X_train_combined)
+
+# Calculate and print the training accuracy
+train_accuracy = accuracy_score(y_train, y_train_pred)
+print(f"Training Accuracy: {train_accuracy:.4f}")
 
