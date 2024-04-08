@@ -2,9 +2,10 @@ import random
 import pandas as pd
 import numpy as np
 import re
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 file_name = "clean_dataset.csv"
-
 
 
 """###############################
@@ -43,7 +44,6 @@ def to_numeric(s):
     return float(s)
 
 
-
 def radm_dict(d):
     value_to_keys = {}
     for key, value in d.items():
@@ -63,18 +63,15 @@ def radm_dict(d):
     return new_dict
 
 
-def to_dict(s):
-  samples = s.split(",")
-  result_dict = {}
-  for sample in samples:
-    # Split the pair on "=>" to separate the key and value
-    key, value = sample.split('=>')
-    if value == "":
-      value = random.choice(['3', '4'])
-    # Convert value to integer and add to the dictionary
-    result_dict[key.strip()] = int(value.strip())
-    result_dict = radm_dict(result_dict)
-  return [max(result_dict, key=result_dict.get), min(result_dict, key=result_dict.get)]
+def to_dict_complete(s):
+    samples = s.split(",")
+    result_dict = {}
+    for sample in samples:
+        key, value = sample.split('=>')
+        if value == "":
+            break
+        result_dict[key.strip()] = int(value.strip())
+    return result_dict
 
 
 def process_data(filename: str) -> pd.DataFrame:
@@ -87,65 +84,217 @@ def process_data(filename: str) -> pd.DataFrame:
    df["Q2"] = df["Q2"].apply(lambda x: get_number(x, na_14))
    df["Q3"] = df["Q3"].apply(lambda x: get_number(x, na_14))
    df["Q4"] = df["Q4"].apply(lambda x: get_number(x, na_14))
-
-#     # fill all the missing values in Q1-Q4 colums as 2
-#    df["Q1"].fillna(na_14, inplace = True)
-#    df["Q2"].fillna(na_14, inplace = True)
-#    df["Q3"].fillna(na_14, inplace = True)
-#    df["Q4"].fillna(na_14, inplace = True)
    
     # pre process Q5
    q5_category = ["Partner", "Friends", "Siblings", "Co-worker"]
-   
-#    # fill all missing values in Q5 by randomly choose one of the possible categories
-#    df["Q5"].fillna(random.choice(q5_category))
 
    # create one hot features for 4 categories
    for cat in q5_category:
     cat_name = f"{cat}"
     df[cat_name] = df["Q5"].apply(lambda s: cat_in_s(s, cat))
 
-    # pre process Q6 as NUMERICAL
-    # fill all the missing values in Q6 as mean (3)
-#    df["Q6"].fillna("Skyscrapers=>3,Sport=>3,Art and Music=>3,Carnival=>3,Cuisine=>3,Economic=>3", 
-#                     inplace = True)
-   
-   
+
    # pre process Q7 - Q9
    df["Q7"] = df["Q7"].apply(to_numeric)
    df["Q8"] = df["Q8"].apply(to_numeric)
    df["Q9"] = df["Q9"].apply(to_numeric)
-
-#     # fill all the missing values in Q7 - Q9 with column mean
-#    df["Q7"].fillna(df["Q7"].mean(), inplace = True)
-#    df["Q8"].fillna(df["Q8"].mean(), inplace = True)
-#    df["Q9"].fillna(df["Q9"].mean(), inplace = True)
-
-    # replace all the outliers by given number
-#    q7_min = -50
-#    q7_max = 50
-#    q89_min = 1
-#    Q89_max = 15
-#    df.loc[(df['Q7'] < q7_min), 'Q7'] = q7_min
-#    df.loc[(df['Q7'] > q7_max), 'Q7'] = q7_max
-#    df.loc[(df['Q8'] < q89_min), 'Q8'] = q89_min
-#    df.loc[(df['Q9'] > Q89_max), 'Q9'] = Q89_max
-#    df.loc[(df['Q8'] < q89_min), 'Q8'] = q89_min
-#    df.loc[(df['Q9'] > Q89_max), 'Q9'] = Q89_max
-   
-    # normalizing
-#    df['Q7'] = (df['Q7'] - df['Q7'].mean()) / (df['Q7'].std() + 0.0001)
-#    df['Q8'] = (df['Q8'] - df['Q8'].mean()) / (df['Q8'].std() + 0.0001)
-#    df['Q9'] = (df['Q9'] - df['Q9'].mean()) / (df['Q9'].std() + 0.0001)
 
    return df
 
 
 if __name__ == "__main__":
     df = process_data(file_name)
-    dfDubai = df[df["Label"] == "Dubai"]
-    dfRio = df[df["Label"] == "Rio de Janeiro"]
-    dfNY = df[df["Label"] == "New York City"]
-    dfParis = df[df["Label"] == "Paris"]
 
-    print(dfDubai.describe)
+#     Q1_na = df['Q1'].isna().sum()
+#     Q2_na = df['Q2'].isna().sum()
+#     Q3_na = df['Q3'].isna().sum()
+#     Q4_na = df['Q4'].isna().sum()
+#     Q5_na = df['Q5'].isna().sum()
+#     Q6_na = df['Q6'].isna().sum()
+#     Q7_na = df['Q7'].isna().sum()
+#     Q8_na = df['Q8'].isna().sum()
+#     Q9_na = df['Q9'].isna().sum()
+#     Q10_na = df['Q10'].isna().sum()
+
+#     q7_min = -50
+#     q7_max = 50
+#     q89_min = 1
+#     q89_max = 15
+
+#     Q7_out = ((df['Q7'] < q7_min) | (df['Q7'] > q7_max)).sum()
+#     Q8_out = ((df['Q8'] < q89_min) | (df['Q8'] > q89_max)).sum()
+#     Q9_out = ((df['Q9'] < q89_min) | (df['Q9'] > q89_max)).sum()
+
+    # df.loc[(df['Q7'] < q7_min), 'Q7'] = q7_min
+    # df.loc[(df['Q7'] > q7_max), 'Q7'] = q7_max
+    # df.loc[(df['Q8'] < q89_min), 'Q8'] = q89_min
+    # df.loc[(df['Q8'] > q89_max), 'Q8'] = q89_max
+    # df.loc[(df['Q9'] < q89_min), 'Q9'] = q89_min
+    # df.loc[(df['Q9'] > q89_max), 'Q9'] = q89_max
+
+#     df["Q6"].fillna("Skyscrapers=>3.5,Sport=>3.5,Art and Music=>3.5,Carnival=>3.5,Cuisine=>3.5,Economic=>3.5", 
+#                         inplace = True)
+#     df["Q6_Skyscr"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Skyscrapers", 3.5))
+#     df["Q6_Sport"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Sport", 3.5))
+#     df["Q6_AM"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Art and Music", 3.5))
+#     df["Q6_Carnival"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Carnival", 3.5))
+#     df["Q6_Cuisine"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Cuisine", 3.5))
+#     df["Q6_Eco"] = df["Q6"].apply(lambda x: to_dict_complete(x).get("Economic", 3.5))
+
+#     # Data for the table
+#     columns = ['Missing Value count', 'Outlier count']
+#     rows = ['Popular Score', 'Efficient Score', 'Uniqueness Score', 'Enthusiasm Score', 
+#             'Traveler Choice', 'Key word Rank', 'Avg Temp', 'Language count', 'Style Count', 'Quote']
+
+#     data = [[Q1_na, 0],  # Data for Column1
+#             [Q2_na, 0],
+#             [Q3_na, 0],
+#             [Q4_na, 0],
+#             [Q5_na, 0],
+#             [Q6_na, 0],
+#             [Q7_na, Q7_out],
+#             [Q8_na, Q8_out],
+#             [Q9_na, Q9_out],
+#             [Q10_na, 0]]   # Data for Column2
+
+#     # Create a figure and a grid to display the table
+#     fig, ax = plt.subplots()
+
+#     # Hide the axes
+#     ax.axis('tight')
+#     ax.axis('off')
+
+#     table = ax.table(cellText=data, 
+#                     rowLabels=rows, 
+#                     colLabels=columns, 
+#                     cellLoc='center', 
+#                     loc='center')
+#     plt.savefig('./preprocessor/plots/miss_out Count.png', bbox_inches='tight', dpi=150)
+
+    # na_14 = 2
+    # q5_category = ["Partner", "Friends", "Siblings", "Co-worker"]
+
+    # df["Q1"].fillna(na_14, inplace = True)
+    # df["Q2"].fillna(na_14, inplace = True)
+    # df["Q3"].fillna(na_14, inplace = True)
+    # df["Q4"].fillna(na_14, inplace = True)
+    # df["Q5"].fillna(random.choice(q5_category))
+    # df["Q7"].fillna(df["Q7"].mean(), inplace = True)
+    # df["Q8"].fillna(df["Q8"].mean(), inplace = True)
+    # df["Q9"].fillna(df["Q9"].mean(), inplace = True)
+
+    # # Q1
+    # sns.boxplot(x='Q1', y='Label', data=df)
+    # plt.title('Q1 distribution')
+    # plt.xlabel('Popular score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q1_box.png")
+    # plt.clf()
+
+    # # Q2
+    # sns.boxplot(x='Q2', y='Label', data=df)
+    # plt.title('Q2 distribution')
+    # plt.xlabel('Efficient score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q2_box.png")
+    # plt.clf()
+
+    # # Q3
+    # sns.boxplot(x='Q3', y='Label', data=df)
+    # plt.title('Q3 distribution')
+    # plt.xlabel('Uniqueness score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q3_box.png")
+    # plt.clf()
+
+    # # Q4
+    # sns.boxplot(x='Q4', y='Label', data=df)
+    # plt.title('Q4 distribution')
+    # plt.xlabel('Enthusiasm score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q4_box.png")
+    # plt.clf()
+
+    # # Q7
+    # sns.boxplot(x='Q7', y='Label', data=df)
+    # plt.title('Q7 distribution')
+    # plt.xlabel('Temperature')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q7_box.png")
+    # plt.clf()
+    
+    # # Q8
+    # sns.boxplot(x='Q8', y='Label', data=df)
+    # plt.title('Q8 distribution')
+    # plt.xlabel('Languages counts')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q8_box.png")
+    # plt.clf()
+    
+    # # Q9
+    # sns.boxplot(x='Q9', y='Label', data=df)
+    # plt.title('Q9 distribution')
+    # plt.xlabel('Fashion styles count')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q9_box.png")
+    # plt.clf()
+
+    # Q5
+    aggregated_data = df.groupby('Label').sum().reset_index()
+    melted_data = aggregated_data.melt(id_vars='Label', value_vars=["Partner", "Friends", "Siblings", "Co-worker"],  var_name='Choice', value_name='Count')
+
+    sns.barplot(x='Label', y='Count', hue='Choice', data=melted_data)
+    plt.title('Side by Side Compare of Traveler Choice Count by City')
+    plt.xlabel('City')
+    plt.ylabel('Count')
+    plt.legend(title='Column')
+    plt.savefig("./preprocessor/plots/Q5_bar.png")
+    plt.clf()
+
+    # # Q6_Skyscr
+    # sns.boxplot(x='Q6_Skyscr', y='Label', data=df)
+    # plt.title('Q6_Skyscr distribution')
+    # plt.xlabel('Skyscarapers score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_Skyscr.png")
+    # plt.clf()
+
+    # # Q6_Sport
+    # sns.boxplot(x='Q6_Sport', y='Label', data=df)
+    # plt.title('Q6_Sport distribution')
+    # plt.xlabel('Sport score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_Sport.png")
+    # plt.clf()
+
+    # # Q6_AM
+    # sns.boxplot(x='Q6_AM', y='Label', data=df)
+    # plt.title('Q6_AM distribution')
+    # plt.xlabel('Art and Music score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_AM.png")
+    # plt.clf()
+
+    # # Q6_Carnival
+    # sns.boxplot(x='Q6_Carnival', y='Label', data=df)
+    # plt.title('Q6_Carnival distribution')
+    # plt.xlabel('Carnival score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_Carnival.png")
+    # plt.clf()
+
+    # # Q6_Cuisine
+    # sns.boxplot(x='Q6_Cuisine', y='Label', data=df)
+    # plt.title('Q6_Cuisine distribution')
+    # plt.xlabel('Cuisine score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_Cuisine.png")
+    # plt.clf()
+
+    # # Q6_Eco
+    # sns.boxplot(x='Q6_Eco', y='Label', data=df)
+    # plt.title('Q6_Eco distribution')
+    # plt.xlabel('Economic score')
+    # plt.ylabel('City')
+    # plt.savefig("./preprocessor/plots/Q6_Eco.png")
+    # plt.clf()
