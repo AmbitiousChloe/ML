@@ -9,7 +9,6 @@ import re
 
 file_name = "nor_oneH.csv"
 log = open("AccuracyLog.txt", 'w')
-parameterslog = open("ParametersLog.txt", 'w')
 vocabList = open("Vocabulary.txt", "w", encoding="utf-8")
 num_labels = 4
 wordsList = []
@@ -31,8 +30,9 @@ def split_dataset(df: pd.DataFrame, val_size: int, test_size: int):
     return X_train, t_train, X_valid, t_valid, X_test, t_test
 
 data = pd.read_csv(file_name)
-
-X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
+X_train = data.drop(columns='Label').values
+y_train = data['Label'].values
+# X_train, y_train, X_val, y_val, X_test, y_test = split_dataset(data, 150, 150)
 
 def get_vocab(X_train):
     vocab = []
@@ -62,24 +62,24 @@ features = insert_feature(X_train, vocab)
 X_train_numeric = np.delete(X_train, 3, axis=1).astype(np.float64)
 X_train = np.hstack((X_train_numeric, features)).astype(np.float64)
 
-valid_features = insert_feature(X_val, vocab)
-X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
-X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
+# valid_features = insert_feature(X_val, vocab)
+# X_val_numeric = np.delete(X_val, 3, axis=1).astype(np.float64)
+# X_val = np.hstack((X_val_numeric, valid_features)).astype(np.float64)
 
-test_features = insert_feature(X_test, vocab)
-X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
-X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
+# test_features = insert_feature(X_test, vocab)
+# X_test_numeric = np.delete(X_test, 3, axis=1).astype(np.float64)
+# X_test = np.hstack((X_test_numeric, test_features)).astype(np.float64)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
-X_val_tensor = torch.tensor(X_val, dtype=torch.float)
-y_val_tensor = torch.tensor(y_val, dtype=torch.long)
-X_test_tensor = torch.tensor(X_test, dtype=torch.float)
-y_test_tensor = torch.tensor(y_test, dtype=torch.long)
+# X_val_tensor = torch.tensor(X_val, dtype=torch.float)
+# y_val_tensor = torch.tensor(y_val, dtype=torch.long)
+# X_test_tensor = torch.tensor(X_test, dtype=torch.float)
+# y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
-test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+# val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
+# test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
 class TwoLayerNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -126,29 +126,29 @@ for epoch in range(num_epochs):
     if epoch % 10 == 0:
         log.write(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {loss:.4f}, Train Accuracy: {100 * train_correct / train_total:.2f}%\n')
 
-    model.eval()
-    val_loss, val_correct, val_total = 0, 0, 0
-    with torch.no_grad():
-        outputs = model(X_val_tensor)
-        loss = criterion(outputs, y_val_tensor)
-        val_loss = loss.item()
-        _, predicted = torch.max(outputs.data, 1)
-        val_total = y_val_tensor.size(0)
-        val_correct = (predicted == y_val_tensor).sum().item()
-    val_losses.append(val_loss)
-    val_accuracies.append(100 * val_correct / val_total)
-    if epoch % 10 == 0:
-        log.write(f'Epoch [{epoch+1}/{num_epochs}], Validation Loss: {loss:.4f}, Validation Accuracy: {100 * val_correct / val_total:.2f}%\n')
+    # model.eval()
+    # val_loss, val_correct, val_total = 0, 0, 0
+    # with torch.no_grad():
+    #     outputs = model(X_val_tensor)
+    #     loss = criterion(outputs, y_val_tensor)
+    #     val_loss = loss.item()
+    #     _, predicted = torch.max(outputs.data, 1)
+    #     val_total = y_val_tensor.size(0)
+    #     val_correct = (predicted == y_val_tensor).sum().item()
+    # val_losses.append(val_loss)
+    # val_accuracies.append(100 * val_correct / val_total)
+    # if epoch % 10 == 0:
+    #     log.write(f'Epoch [{epoch+1}/{num_epochs}], Validation Loss: {loss:.4f}, Validation Accuracy: {100 * val_correct / val_total:.2f}%\n')
     
-    test_correct, test_total = 0, 0
-    with torch.no_grad():
-        outputs = model(X_test_tensor)
-        _, predicted = torch.max(outputs.data, 1)
-        test_total = y_test_tensor.size(0)
-        test_correct = (predicted == y_test_tensor).sum().item()
-    test_accuracies.append(100 * test_correct / test_total)
-    if epoch % 10 == 0:
-        log.write(f'Epoch [{epoch+1}/{num_epochs}], Test Accuracy: {100 * test_correct / test_total:.2f}%\n')
+    # test_correct, test_total = 0, 0
+    # with torch.no_grad():
+    #     outputs = model(X_test_tensor)
+    #     _, predicted = torch.max(outputs.data, 1)
+    #     test_total = y_test_tensor.size(0)
+    #     test_correct = (predicted == y_test_tensor).sum().item()
+    # test_accuracies.append(100 * test_correct / test_total)
+    # if epoch % 10 == 0:
+    #     log.write(f'Epoch [{epoch+1}/{num_epochs}], Test Accuracy: {100 * test_correct / test_total:.2f}%\n')
 
 
 weights_first_layer = model.layer1.weight.data
